@@ -22,7 +22,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=iamroot
 
-  ewm-service:
+  main-service:
     build: main-service/.
     container_name: main-server
     ports:
@@ -30,7 +30,7 @@ services:
     depends_on:
       - main-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/main
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/main
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=iamroot
       - STAT_SERVER_URL=http://stats-server:9090
