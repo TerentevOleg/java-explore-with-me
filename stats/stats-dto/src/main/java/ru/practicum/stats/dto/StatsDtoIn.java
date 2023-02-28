@@ -8,9 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Builder
-@Getter
-@Setter
-@RequiredArgsConstructor
+@Value
 public class StatsDtoIn {
 
     @NotBlank

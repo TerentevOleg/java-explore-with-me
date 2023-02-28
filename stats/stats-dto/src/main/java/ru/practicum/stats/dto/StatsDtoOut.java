@@ -3,8 +3,7 @@ package ru.practicum.stats.dto;
 import lombok.*;
 
 @Builder
-@Getter
-@Setter
+@Value
 @RequiredArgsConstructor
 public class StatsDtoOut {
     String app;
