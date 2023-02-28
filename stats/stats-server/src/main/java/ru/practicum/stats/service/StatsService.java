@@ -9,5 +9,6 @@ import java.util.List;
 public interface StatsService {
 
     void save(StatsDtoIn statsDtoIn);
+
     List<StatsDtoOut> get(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique);
 }
