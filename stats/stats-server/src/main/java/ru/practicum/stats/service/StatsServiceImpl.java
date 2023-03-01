@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.dto.StatsDtoIn;
 import ru.practicum.stats.dto.StatsDtoOut;
@@ -27,7 +28,7 @@ public class StatsServiceImpl implements StatsService {
     private final StatMapper statMapper;
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void save(StatsDtoIn statDtoIn) {
         String appName = statDtoIn.getApp();
         AppEntity app = appsRepository.findByName(appName)
@@ -39,18 +40,27 @@ public class StatsServiceImpl implements StatsService {
 
         StatEntity statEntity = statMapper.fromDto(statDtoIn, app);
         statsRepository.save(statEntity);
-        log.debug("Save statistics hit: {}", statEntity);
+        log.debug("StatsServiceImpl: save statistics hit: {}", statEntity);
     }
 
     @Override
     public List<StatsDtoOut> get(LocalDateTime start, LocalDateTime end,
                                       List<String> uris, boolean unique) {
         List<StatsDtoOut> stats;
-            if (unique) {
-                stats = statsRepository.findByTimeUnique(start, end, uris);
+        if (uris == null || uris.isEmpty()) {
+            if (!unique) {
+                stats = statsRepository.getAllHits(start, end);
             } else {
-                stats = statsRepository.findByTime(start, end, uris);
+                stats = statsRepository.getAllUniqueHits(start, end);
             }
+        } else {
+            if (!unique) {
+                stats = statsRepository.getHitsByUris(start, end, uris);
+            } else {
+                stats = statsRepository.getUniqueHitsByUris(start, end, uris);
+            }
+        }
+        log.debug("StatsServiceImpl: get statistics hit size: {}", stats.size());
         return stats;
     }
 }
