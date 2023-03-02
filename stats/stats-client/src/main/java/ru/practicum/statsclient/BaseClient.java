@@ -5,6 +5,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 public class BaseClient {
@@ -15,34 +16,35 @@ public class BaseClient {
     }
 
     protected ResponseEntity<Object> post(String path, Object body) {
-        return makeAndSendRequest(HttpMethod.POST, path, null, body);
+        return makeAndSendRequest(HttpMethod.POST, path, null, body, Object.class);
     }
 
-    protected ResponseEntity<Object> get(String path, Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
+    protected ResponseEntity<List> get(String path, Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null, List.class);
     }
 
-    private ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path,
-                                                      @Nullable Map<String, Object> parameters,
-                                                      @Nullable Object body) {
+    private <T> ResponseEntity<T> makeAndSendRequest(HttpMethod method, String path,
+                                                     @Nullable Map<String, Object> parameters,
+                                                     @Nullable Object body,
+                                                     Class<T> responseType) {
 
         HttpEntity<Object> requestEntity = new HttpEntity<>(body, null);
 
-        ResponseEntity<Object> statsServerResponse;
+        ResponseEntity<T> statsServerResponse;
 
         try {
             if (parameters != null) {
-                statsServerResponse = restTemplate.exchange(path, method, requestEntity, Object.class, parameters);
+                statsServerResponse = restTemplate.exchange(path, method, requestEntity, responseType, parameters);
             } else {
-                statsServerResponse = restTemplate.exchange(path, method, requestEntity, Object.class);
+                statsServerResponse = restTemplate.exchange(path, method, requestEntity, responseType);
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            return (ResponseEntity<T>) ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }
         return prepareStatsClientResponse(statsServerResponse);
     }
 
-    private static ResponseEntity<Object> prepareStatsClientResponse(ResponseEntity<Object> response) {
+    private static <T> ResponseEntity<T> prepareStatsClientResponse(ResponseEntity<T> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
@@ -54,5 +56,4 @@ public class BaseClient {
 
         return responseBuilder.build();
     }
-
 }

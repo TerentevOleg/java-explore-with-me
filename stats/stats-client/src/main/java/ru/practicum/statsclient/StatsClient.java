@@ -7,6 +7,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.stats.dto.StatsDtoIn;
+import ru.practicum.stats.dto.StatsDtoOut;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class StatsClient extends BaseClient {
         return post("/hit", statsDtoIn);
     }
 
-    public ResponseEntity<Object> get(String start, String end, List<String> uris, Boolean unique) {
+    public ResponseEntity<List> get(String start, String end, List<String> uris, Boolean unique) {
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,
