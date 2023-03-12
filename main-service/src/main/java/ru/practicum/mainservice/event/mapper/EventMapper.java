@@ -16,14 +16,14 @@ import java.time.format.DateTimeFormatter;
 
 public class EventMapper {
 
-    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static EventShortDtoOut toEventShortDto(Event event) {
         return EventShortDtoOut.builder()
                 .annotation(event.getAnnotation())
                 .category(toCategoryDto(event.getCategory()))
                 .confirmedRequests(event.getConfirmedRequests())
-                .eventDate(event.getEventDate().format(DTF))
+                .eventDate(event.getEventDate().format(FORMATTER))
                 .id(event.getId())
                 .initiator(toUserShortDto(event.getInitiator()))
                 .paid(event.getPaid())
@@ -36,7 +36,7 @@ public class EventMapper {
         Event event = new Event();
         event.setAnnotation(eventDtoIn.getAnnotation());
         event.setDescription(eventDtoIn.getDescription());
-        event.setEventDate(LocalDateTime.parse(eventDtoIn.getEventDate(), DTF));
+        event.setEventDate(LocalDateTime.parse(eventDtoIn.getEventDate(), FORMATTER));
         event.setLocation(toLocation(eventDtoIn.getLocation()));
         event.setPaid(eventDtoIn.getPaid());
         event.setParticipantLimit(eventDtoIn.getParticipantLimit());
@@ -45,20 +45,20 @@ public class EventMapper {
         return event;
     }
 
-    public static EventDtoOut toEventFullDto(Event event) {
+    public static EventDtoOut toEventDtoOut(Event event) {
         return EventDtoOut.builder()
                 .annotation(event.getAnnotation())
                 .category(toCategoryDto(event.getCategory()))
                 .confirmedRequests(event.getConfirmedRequests())
-                .createdOn(event.getCreatedOn().format(DTF))
+                .createdOn(event.getCreatedOn().format(FORMATTER))
                 .description(event.getDescription())
-                .eventDate(event.getEventDate().format(DTF))
+                .eventDate(event.getEventDate().format(FORMATTER))
                 .id(event.getId())
                 .initiator(toUserShortDto(event.getInitiator()))
                 .location(toLocationDto(event.getLocation()))
                 .paid(event.getPaid())
                 .participantLimit(event.getParticipantLimit())
-                .publishedOn(LocalDateTime.now().format(DTF))
+                .publishedOn(LocalDateTime.now().format(FORMATTER))
                 .state(event.getState())
                 .requestModeration(event.getRequestModeration())
                 .title(event.getTitle())

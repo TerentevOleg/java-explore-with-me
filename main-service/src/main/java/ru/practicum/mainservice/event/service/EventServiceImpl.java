@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ import ru.practicum.mainservice.request.model.RequestStatus;
 import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
-import ru.practicum.stats.dto.StatsDtoOut;
 import ru.practicum.statsclient.StatsClient;
 
 import java.time.LocalDateTime;
@@ -67,31 +65,19 @@ public class EventServiceImpl implements EventService {
         event.setViews(0L);
         log.debug("EventServiceImpl: add eventTitle= {}", eventDtoIn.getTitle());
         eventRepository.save(event);
-        return EventMapper.toEventFullDto(event);
+        return EventMapper.toEventDtoOut(event);
     }
 
     @Override
     public EventDtoOut getById(Long id) {
         Event event = findEventById(id);
-        if (!event.getState().equals(State.PUBLISHED)) {
-            throw new NotFoundException("EventServiceImpl: event with id=" + id + " was not found.");
-        }
-        setConfirmedRequests(event);
-        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
-        String endDate = LocalDateTime.now().format(formatter);
-        ResponseEntity<List> responseList = statsClient.get(startDate, endDate,
-                Collections.singletonList("/events/" + id), false);
-        List<StatsDtoOut> list = Optional.ofNullable(responseList.getBody()).orElse(Collections.emptyList());
-        if (!list.isEmpty()) {
-            event.setViews(list.get(0).getHits());
-        }
-        return EventMapper.toEventFullDto(event);
+        return EventMapper.toEventDtoOut(event);
     }
 
     @Override
     public EventDtoOut getById(Long userId, Long eventId) {
         Event event = findEventById(eventId);
-        return EventMapper.toEventFullDto(event);
+        return EventMapper.toEventDtoOut(event);
     }
 
     @Override
@@ -123,7 +109,7 @@ public class EventServiceImpl implements EventService {
                 userList, stateList, categoryList, start, end, PageRequest.of(from, size));
 
         return list.stream()
-                .map(EventMapper::toEventFullDto)
+                .map(EventMapper::toEventDtoOut)
                 .collect(Collectors.toList());
     }
 
@@ -219,7 +205,7 @@ public class EventServiceImpl implements EventService {
             }
             log.debug("EventServiceImpl: update event with eventTitle= {}", eventUserPatchDtoIn.getTitle());
             eventRepository.save(event);
-            return EventMapper.toEventFullDto(event);
+            return EventMapper.toEventDtoOut(event);
         } else {
             throw new ContentDetectedException("EventServiceImpl: only pending or canceled events can be changed.");
         }
@@ -284,7 +270,7 @@ public class EventServiceImpl implements EventService {
         }
         log.debug("EventServiceImpl: update event with eventTitle= {}", eventAdminRequest.getTitle());
         eventRepository.save(event);
-        return EventMapper.toEventFullDto(event);
+        return EventMapper.toEventDtoOut(event);
     }
 
     private Location addLocation(LocationDtoOut locationDtoOut) {
