@@ -1,7 +1,6 @@
 package ru.practicum.mainservice.request.dto;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
 
 import java.util.List;

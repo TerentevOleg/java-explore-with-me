@@ -3,7 +3,6 @@ package ru.practicum.mainservice.compilation.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.mainservice.compilation.dto.CompilationDtoOut;
 import ru.practicum.mainservice.compilation.dto.CompilationDtoIn;
 import ru.practicum.mainservice.compilation.model.Compilation;
