@@ -110,6 +110,10 @@ public class RequestServiceImpl implements RequestService {
         List<Request> requests =
                 requestRepository.findAllByEventIdAndEventInitiatorIdAndIdIn(eventId, userId, requestIds);
 
+        if (event.getParticipantLimit() < requests.size()) {
+            throw new ContentDetectedException("RequestServiceImpl: event entry limit.");
+        }
+
         switch (updateRequest.getStatus()) {
             case "CONFIRMED":
                 for (Request request : requests) {
