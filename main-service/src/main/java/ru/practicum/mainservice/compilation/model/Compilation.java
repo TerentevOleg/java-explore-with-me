@@ -1,6 +1,7 @@
 package ru.practicum.mainservice.compilation.model;
 
 import lombok.*;
+import ru.practicum.mainservice.category.model.Category;
 import ru.practicum.mainservice.event.model.Event;
 
 import javax.persistence.*;
@@ -32,12 +33,12 @@ public class Compilation {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Compilation that = (Compilation) o;
-        return id.equals(that.id);
+        Compilation compilation = (Compilation) o;
+        return Objects.nonNull(id) && id.equals(compilation.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }

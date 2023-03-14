@@ -1,6 +1,7 @@
 package ru.practicum.mainservice.location.model;
 
 import lombok.*;
+import ru.practicum.mainservice.category.model.Category;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -27,11 +28,11 @@ public class Location {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Location location = (Location) o;
-        return id.equals(location.id);
+        return Objects.nonNull(id) && id.equals(location.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }

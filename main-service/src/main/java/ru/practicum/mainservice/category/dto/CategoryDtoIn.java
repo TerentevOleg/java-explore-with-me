@@ -8,5 +8,5 @@ import javax.validation.constraints.NotNull;
 public class CategoryDtoIn {
 
     @NotNull
-    String name;
+    private String name;
 }

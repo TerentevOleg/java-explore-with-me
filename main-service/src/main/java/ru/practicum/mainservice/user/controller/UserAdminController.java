@@ -10,7 +10,6 @@ import ru.practicum.mainservice.user.dto.UserDtoOut;
 import ru.practicum.mainservice.user.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -28,7 +27,7 @@ public class UserAdminController {
     }
 
     @GetMapping("/users")
-    public List<UserDtoOut> getAll(@RequestParam(name = "ids") ArrayList<Long> ids,
+    public List<UserDtoOut> getAll(@RequestParam(name = "ids") List<Long> ids,
                                    @RequestParam (name = "from", defaultValue = "0") Integer from,
                                    @RequestParam (name = "size", defaultValue = "10") Integer size) {
         return userService.getAll(ids, from, size);

@@ -14,7 +14,6 @@ import ru.practicum.mainservice.user.mapper.UserMapper;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +34,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDtoOut> getAll(ArrayList<Long> ids, Integer from, Integer size) {
+    public List<UserDtoOut> getAll(List<Long> ids, Integer from, Integer size) {
         List<User> users = userRepository.getAllByIdIsIn(ids, PageRequest.of(from, size));
         return users.stream()
                 .map(userMapper::toUserDto)

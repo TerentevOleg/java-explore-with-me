@@ -110,17 +110,23 @@ public class RequestServiceImpl implements RequestService {
         List<Request> requests =
                 requestRepository.findAllByEventIdAndEventInitiatorIdAndIdIn(eventId, userId, requestIds);
 
-        for (Request request : requests) {
-            if ("CONFIRMED".equals(updateRequest.getStatus())) {
-                request.setStatus(RequestStatus.CONFIRMED);
-                confirmedRequests.add(requestMapper.toRequestDtoOut(request));
-            } else if ("REJECTED".equals(updateRequest.getStatus())) {
-                request.setStatus(RequestStatus.REJECTED);
-                rejectedRequests.add(requestMapper.toRequestDtoOut(request));
-            }
+        switch (updateRequest.getStatus()) {
+            case "CONFIRMED":
+                for (Request request : requests) {
+                    request.setStatus(RequestStatus.CONFIRMED);
+                    log.debug("RequestServiceImpl: update request with userId= {} and eventId= {}", userId, eventId);
+                    requestRepository.saveAndFlush(request);
+                    confirmedRequests.add(requestMapper.toRequestDtoOut(request));
+                }
+                break;
+            case "REJECTED":
+                for (Request request : requests) {
+                    request.setStatus(RequestStatus.REJECTED);
+                    log.debug("RequestServiceImpl: update request with userId= {} and eventId= {}", userId, eventId);
+                    requestRepository.saveAndFlush(request);
+                    rejectedRequests.add(requestMapper.toRequestDtoOut(request));
+                }
         }
-        log.debug("RequestServiceImpl: update request with userId= {} and eventId= {}", userId, eventId);
-        requestRepository.saveAll(requests);
 
         return RequestPatchDtoOut.builder()
                 .confirmedRequests(confirmedRequests)

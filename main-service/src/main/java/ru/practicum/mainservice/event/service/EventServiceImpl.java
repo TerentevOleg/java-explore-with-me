@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,10 @@ import ru.practicum.mainservice.location.dto.LocationDtoOut;
 import ru.practicum.mainservice.location.mapper.LocationMapper;
 import ru.practicum.mainservice.location.model.Location;
 import ru.practicum.mainservice.location.repository.LocationRepository;
-import ru.practicum.mainservice.request.model.RequestStatus;
 import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
+import ru.practicum.stats.dto.StatsDtoOut;
 import ru.practicum.statsclient.StatsClient;
 
 import java.time.LocalDateTime;
@@ -62,7 +64,7 @@ public class EventServiceImpl implements EventService {
         event.setInitiator(optionalUser.get());
         event.setLocation(addLocation(eventDtoIn.getLocation()));
         event.setState(State.PENDING);
-        event.setViews(0L);
+        //event.setViews(0L);
         log.debug("EventServiceImpl: add eventTitle= {}", eventDtoIn.getTitle());
         eventRepository.save(event);
         return EventMapper.toEventDtoOut(event);
@@ -136,25 +138,40 @@ public class EventServiceImpl implements EventService {
         List<Event> list = eventRepository
                 .findAllByAnnotationContainingOrDescriptionContainingAndCategoryInAndPaidAndEventDateBetween(
                         text, text, categoryList, paid, start, end);
-        list.forEach(this::setConfirmedRequests);
-        List<Event> sortedList = new ArrayList<>();
+
+        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
+        String endDate = LocalDateTime.now().format(formatter);
+        List<EventViewsDtoOut> eventViewsList = new ArrayList<>();
+        for(Event event: list) {
+            ResponseEntity<List> response = statsClient.get(startDate, endDate,
+                    Collections.singletonList(event.getId().toString()), false);
+            Long views = 0L;
+            if(response.getStatusCode() == HttpStatus.OK) {
+                List<StatsDtoOut> statsDtoOutList = response.getBody();
+                if(statsDtoOutList.size() > 0) {
+                    views = statsDtoOutList.get(0).getHits();
+                }
+            }
+            eventViewsList.add(new EventViewsDtoOut(event, views));
+        }
+
+        List<EventViewsDtoOut> sortedEventViewsList = new ArrayList<>();
         if (Objects.nonNull(sort)) {
             if (sort.equals("EVENT_DATE")) {
-                sortedList = list.stream()
-                        .sorted(Comparator.comparing(Event::getEventDate))
+                sortedEventViewsList = eventViewsList.stream()
+                        .sorted(Comparator.comparing(ev -> ev.getEvent().getEventDate()))
                         .collect(Collectors.toList());
             }
             if (sort.equals("VIEWS")) {
-                sortedList = list.stream()
-                        .sorted(Comparator.comparing(Event::getViews))
+                sortedEventViewsList = eventViewsList.stream()
+                        .sorted(Comparator.comparing(EventViewsDtoOut::getViews))
                         .collect(Collectors.toList());
             }
         }
-        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
-        String endDate = LocalDateTime.now().format(formatter);
-        statsClient.get(startDate, endDate, Collections.singletonList("/events"), false);
 
-        return sortedList.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
+        return sortedEventViewsList.stream()
+                .map(ev -> EventMapper.toEventShortDto(ev.getEvent()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -278,8 +295,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void setConfirmedRequests(Event event) {
-        event.setConfirmedRequests(requestRepository
-                .countParticipationByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED));
+        requestRepository.countConfirmedRequestsByEventId(event.getId());
     }
 
     private Event findEventById(Long id) {

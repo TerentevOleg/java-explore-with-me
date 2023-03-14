@@ -28,8 +28,6 @@ public class Event {
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
 
-    private Long confirmedRequests;
-
     private LocalDateTime createdOn;
 
     private String description;
@@ -56,18 +54,16 @@ public class Event {
 
     private Boolean requestModeration;
 
-    private Long views;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Event event = (Event) o;
-        return id.equals(event.id);
+        return Objects.nonNull(id) && id.equals(event.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }

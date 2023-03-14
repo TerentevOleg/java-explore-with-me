@@ -9,8 +9,8 @@ import javax.validation.constraints.NotNull;
 @Data
 @Builder
 public class CategoryDtoOut {
-    Long id;
+    private Long id;
     @NotBlank
     @NotNull
-    String name;
+    private String name;
 }

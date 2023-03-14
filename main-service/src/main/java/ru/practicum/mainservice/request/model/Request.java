@@ -1,6 +1,7 @@
 package ru.practicum.mainservice.request.model;
 
 import lombok.*;
+import ru.practicum.mainservice.category.model.Category;
 import ru.practicum.mainservice.event.model.Event;
 import ru.practicum.mainservice.user.model.User;
 
@@ -38,11 +39,11 @@ public class Request {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Request request = (Request) o;
-        return id.equals(request.id);
+        return Objects.nonNull(id) && id.equals(request.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 }

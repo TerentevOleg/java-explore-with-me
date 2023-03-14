@@ -22,13 +22,11 @@ public class EventMapper {
         return EventShortDtoOut.builder()
                 .annotation(event.getAnnotation())
                 .category(toCategoryDto(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
                 .eventDate(event.getEventDate().format(FORMATTER))
                 .id(event.getId())
                 .initiator(toUserShortDto(event.getInitiator()))
                 .paid(event.getPaid())
                 .title(event.getTitle())
-                .views(event.getViews())
                 .build();
     }
 
@@ -49,7 +47,6 @@ public class EventMapper {
         return EventDtoOut.builder()
                 .annotation(event.getAnnotation())
                 .category(toCategoryDto(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
                 .createdOn(event.getCreatedOn().format(FORMATTER))
                 .description(event.getDescription())
                 .eventDate(event.getEventDate().format(FORMATTER))
@@ -62,7 +59,6 @@ public class EventMapper {
                 .state(event.getState())
                 .requestModeration(event.getRequestModeration())
                 .title(event.getTitle())
-                .views(event.getViews())
                 .build();
     }
 
