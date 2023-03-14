@@ -142,13 +142,13 @@ public class EventServiceImpl implements EventService {
         String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
         String endDate = LocalDateTime.now().format(formatter);
         List<EventViewsDtoOut> eventViewsList = new ArrayList<>();
-        for(Event event: list) {
+        for (Event event: list) {
             ResponseEntity<List> response = statsClient.get(startDate, endDate,
                     Collections.singletonList(event.getId().toString()), false);
             Long views = 0L;
-            if(response.getStatusCode() == HttpStatus.OK) {
+            if (response.getStatusCode() == HttpStatus.OK) {
                 List<StatsDtoOut> statsDtoOutList = response.getBody();
-                if(statsDtoOutList.size() > 0) {
+                if (statsDtoOutList.size() > 0) {
                     views = statsDtoOutList.get(0).getHits();
                 }
             }
