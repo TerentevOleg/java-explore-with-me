@@ -1,7 +1,6 @@
 package ru.practicum.mainservice.compilation.model;
 
 import lombok.*;
-import ru.practicum.mainservice.category.model.Category;
 import ru.practicum.mainservice.event.model.Event;
 
 import javax.persistence.*;

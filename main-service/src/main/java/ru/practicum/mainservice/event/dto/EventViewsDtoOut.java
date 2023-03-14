@@ -1,6 +1,5 @@
 package ru.practicum.mainservice.event.dto;
 
-import lombok.Data;
 import lombok.Value;
 import ru.practicum.mainservice.event.model.Event;
 

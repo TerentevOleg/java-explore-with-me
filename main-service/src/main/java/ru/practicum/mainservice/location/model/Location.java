@@ -1,7 +1,6 @@
 package ru.practicum.mainservice.location.model;
 
 import lombok.*;
-import ru.practicum.mainservice.category.model.Category;
 
 import javax.persistence.*;
 import java.util.Objects;
