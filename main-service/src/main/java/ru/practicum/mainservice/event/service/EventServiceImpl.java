@@ -23,7 +23,6 @@ import ru.practicum.mainservice.location.dto.LocationDtoOut;
 import ru.practicum.mainservice.location.mapper.LocationMapper;
 import ru.practicum.mainservice.location.model.Location;
 import ru.practicum.mainservice.location.repository.LocationRepository;
-import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
 import ru.practicum.stats.dto.StatsDtoOut;
