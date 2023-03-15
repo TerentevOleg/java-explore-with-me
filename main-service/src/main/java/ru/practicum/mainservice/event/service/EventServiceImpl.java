@@ -64,7 +64,6 @@ public class EventServiceImpl implements EventService {
         event.setInitiator(optionalUser.get());
         event.setLocation(addLocation(eventDtoIn.getLocation()));
         event.setState(State.PENDING);
-        //event.setViews(0L);
         log.debug("EventServiceImpl: add eventTitle= {}", eventDtoIn.getTitle());
         eventRepository.save(event);
         return EventMapper.toEventDtoOut(event);
