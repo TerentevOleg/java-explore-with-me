@@ -37,7 +37,6 @@ CREATE TABLE IF NOT EXISTS events
     state VARCHAR,
     request_moderation BOOLEAN NOT NULL,
     title VARCHAR(255),
-    views BIGINT,
     CONSTRAINT pk_event PRIMARY KEY (id)
 );
 

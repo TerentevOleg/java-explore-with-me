@@ -45,7 +45,6 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
-    private final RequestRepository requestRepository;
     private final StatsClient statsClient;
     private final LocationMapper locationMapper;
 
@@ -59,7 +58,6 @@ public class EventServiceImpl implements EventService {
         Optional<User> optionalUser = userRepository.findById(userId);
         Event event = EventMapper.toEvent(eventDtoIn);
         event.setCategory(categoryRepository.findById(eventDtoIn.getCategory()).get());
-        setConfirmedRequests(event);
         event.setCreatedOn(LocalDateTime.now());
         event.setInitiator(optionalUser.get());
         event.setLocation(addLocation(eventDtoIn.getLocation()));
@@ -140,19 +138,23 @@ public class EventServiceImpl implements EventService {
 
         String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
         String endDate = LocalDateTime.now().format(formatter);
-        List<EventViewsDtoOut> eventViewsList = new ArrayList<>();
-        for (Event event: list) {
-            ResponseEntity<List> response = statsClient.get(startDate, endDate,
-                    Collections.singletonList(event.getId().toString()), false);
-            Long views = 0L;
-            if (response.getStatusCode() == HttpStatus.OK) {
-                List<StatsDtoOut> statsDtoOutList = response.getBody();
-                if (statsDtoOutList.size() > 0) {
-                    views = statsDtoOutList.get(0).getHits();
-                }
-            }
-            eventViewsList.add(new EventViewsDtoOut(event, views));
+        List<String> eventIds = list.stream()
+                .map(event -> event.getId().toString())
+                .collect(Collectors.toList());
+
+        ResponseEntity<List> response = statsClient.get(startDate, endDate, eventIds, false);
+        List<StatsDtoOut> statsDtoOutList = Collections.emptyList();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            statsDtoOutList = response.getBody();
         }
+
+        Map<String, Long> eventViewsMap = statsDtoOutList.stream()
+                .collect(Collectors.toMap(StatsDtoOut::getUri, StatsDtoOut::getHits));
+
+        List<EventViewsDtoOut> eventViewsList = list.stream()
+                .map(event -> new EventViewsDtoOut(event, eventViewsMap.getOrDefault(event.getId().toString(),
+                        0L)))
+                .collect(Collectors.toList());
 
         List<EventViewsDtoOut> sortedEventViewsList = new ArrayList<>();
         if (Objects.nonNull(sort)) {
@@ -291,10 +293,6 @@ public class EventServiceImpl implements EventService {
 
     private Location addLocation(LocationDtoOut locationDtoOut) {
         return locationRepository.saveAndFlush(locationMapper.toLocation(locationDtoOut));
-    }
-
-    private void setConfirmedRequests(Event event) {
-        requestRepository.countConfirmedRequestsByEventId(event.getId());
     }
 
     private Event findEventById(Long id) {
