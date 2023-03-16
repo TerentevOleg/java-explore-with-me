@@ -1,45 +1,45 @@
 package ru.practicum.mainservice.event.dto;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 import ru.practicum.mainservice.category.dto.CategoryDtoOut;
 import ru.practicum.mainservice.event.model.State;
 import ru.practicum.mainservice.location.dto.LocationDtoOut;
 import ru.practicum.mainservice.user.dto.UserShortDtoOut;
 
-@Value
+@Data
 @Builder
 public class EventDtoOut {
 
-    Long id;
+    private Long id;
 
-    String title;
+    private String title;
 
-    String annotation;
+    private String annotation;
 
-    CategoryDtoOut category;
+    private CategoryDtoOut category;
 
-    Long confirmedRequests;
+    private Long confirmedRequests;
 
-    String createdOn;
+    private String createdOn;
 
-    String description;
+    private String description;
 
-    String eventDate;
+    private String eventDate;
 
-    UserShortDtoOut initiator;
+    private UserShortDtoOut initiator;
 
-    LocationDtoOut location;
+    private LocationDtoOut location;
 
-    Boolean paid;
+    private Boolean paid;
 
-    Long participantLimit;
+    private Long participantLimit;
 
-    String publishedOn;
+    private String publishedOn;
 
-    State state;
+    private State state;
 
-    Boolean requestModeration;
+    private Boolean requestModeration;
 
-    Long views;
+    private Long views;
 }

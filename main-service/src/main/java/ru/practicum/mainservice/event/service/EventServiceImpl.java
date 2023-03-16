@@ -23,6 +23,7 @@ import ru.practicum.mainservice.location.dto.LocationDtoOut;
 import ru.practicum.mainservice.location.mapper.LocationMapper;
 import ru.practicum.mainservice.location.model.Location;
 import ru.practicum.mainservice.location.repository.LocationRepository;
+import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
 import ru.practicum.stats.dto.StatsDtoOut;
@@ -46,6 +47,7 @@ public class EventServiceImpl implements EventService {
     private final LocationRepository locationRepository;
     private final StatsClient statsClient;
     private final LocationMapper locationMapper;
+    private final RequestRepository requestRepository;
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -69,20 +71,47 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDtoOut getById(Long id) {
         Event event = findEventById(id);
-        return EventMapper.toEventDtoOut(event);
+        return getEventViewsDtoOut(event);
     }
 
     @Override
     public EventDtoOut getById(Long userId, Long eventId) {
         Event event = findEventById(eventId);
-        return EventMapper.toEventDtoOut(event);
+        return getEventViewsDtoOut(event);
     }
 
     @Override
     public List<EventShortDtoOut> getByUserId(Long userId, Integer from, Integer size) {
         List<Event> list = eventRepository.findEventsByInitiatorId(userId, PageRequest.of(from, size));
-        return list.stream()
-                .map(EventMapper::toEventShortDto)
+
+        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
+        String endDate = LocalDateTime.now().format(formatter);
+
+        List<String> eventIds = list.stream()
+                .map(event -> event.getId().toString())
+                .collect(Collectors.toList());
+
+        ResponseEntity<List> response = statsClient.get(startDate, endDate, eventIds, false);
+        List<StatsDtoOut> statsDtoOutList = Collections.emptyList();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            statsDtoOutList = response.getBody();
+        }
+
+        Map<String, Long> eventViewsMap = statsDtoOutList.stream()
+                .collect(Collectors.toMap(StatsDtoOut::getUri, StatsDtoOut::getHits));
+
+        List<EventViewsDtoOut> eventViewsList = list.stream()
+                .map(event -> new EventViewsDtoOut(event, eventViewsMap.getOrDefault(event.getId().toString(),
+                        0L)))
+                .collect(Collectors.toList());
+
+        return eventViewsList.stream()
+                .map(ev -> {
+                    EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
+                    eventShortDtoOut.setConfirmedRequests(requestRepository
+                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    return eventShortDtoOut;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -106,8 +135,15 @@ public class EventServiceImpl implements EventService {
         List<Event> list = eventRepository.findEventsByInitiatorInAndStateInAndCategoryInAndEventDateBetween(
                 userList, stateList, categoryList, start, end, PageRequest.of(from, size));
 
-        return list.stream()
-                .map(EventMapper::toEventDtoOut)
+        List<EventViewsDtoOut> eventViewsList = getEventViewsDtoOuts(start, end, list);
+
+        return eventViewsList.stream()
+                .map(ev -> {
+                    EventDtoOut eventDtoOut = EventMapper.toEventDtoOut(ev.getEvent());
+                    eventDtoOut.setConfirmedRequests(requestRepository
+                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    return eventDtoOut;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -135,25 +171,7 @@ public class EventServiceImpl implements EventService {
                 .findAllByAnnotationContainingOrDescriptionContainingAndCategoryInAndPaidAndEventDateBetween(
                         text, text, categoryList, paid, start, end);
 
-        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
-        String endDate = LocalDateTime.now().format(formatter);
-        List<String> eventIds = list.stream()
-                .map(event -> event.getId().toString())
-                .collect(Collectors.toList());
-
-        ResponseEntity<List> response = statsClient.get(startDate, endDate, eventIds, false);
-        List<StatsDtoOut> statsDtoOutList = Collections.emptyList();
-        if (response.getStatusCode() == HttpStatus.OK) {
-            statsDtoOutList = response.getBody();
-        }
-
-        Map<String, Long> eventViewsMap = statsDtoOutList.stream()
-                .collect(Collectors.toMap(StatsDtoOut::getUri, StatsDtoOut::getHits));
-
-        List<EventViewsDtoOut> eventViewsList = list.stream()
-                .map(event -> new EventViewsDtoOut(event, eventViewsMap.getOrDefault(event.getId().toString(),
-                        0L)))
-                .collect(Collectors.toList());
+        List<EventViewsDtoOut> eventViewsList = getEventViewsDtoOuts(start, end, list);
 
         List<EventViewsDtoOut> sortedEventViewsList = new ArrayList<>();
         if (Objects.nonNull(sort)) {
@@ -170,7 +188,12 @@ public class EventServiceImpl implements EventService {
         }
 
         return sortedEventViewsList.stream()
-                .map(ev -> EventMapper.toEventShortDto(ev.getEvent()))
+                .map(ev -> {
+                    EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
+                    eventShortDtoOut.setConfirmedRequests(requestRepository
+                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    return eventShortDtoOut;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -299,5 +322,50 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() ->
                         new NotFoundException("EventServiceImpl: event with id=" +
                                 id + " was not found."));
+    }
+
+    private EventDtoOut getEventViewsDtoOut(Event event) {
+        EventDtoOut eventDtoOut = EventMapper.toEventDtoOut(event);
+
+        String startDate = LocalDateTime.now().minusDays(10L).format(formatter);
+        String endDate = LocalDateTime.now().format(formatter);
+
+        ResponseEntity<List> response = statsClient.get(startDate, endDate,
+                Collections.singletonList(event.getId().toString()), false);
+        List<StatsDtoOut> statsDtoOutList = Collections.emptyList();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            statsDtoOutList = response.getBody();
+        }
+
+        if (!statsDtoOutList.isEmpty()) {
+            StatsDtoOut statsDtoOut = statsDtoOutList.get(0);
+            eventDtoOut.setViews(statsDtoOut.getHits());
+        }
+
+        return eventDtoOut;
+    }
+
+    private List<EventViewsDtoOut> getEventViewsDtoOuts(LocalDateTime start, LocalDateTime end, List<Event> list) {
+        List<String> eventIds = list.stream()
+                .map(event -> event.getId().toString())
+                .collect(Collectors.toList());
+
+        String startDate = start.minusDays(10L).format(formatter);
+        String endDate = end.format(formatter);
+
+        ResponseEntity<List> response = statsClient.get(startDate, endDate, eventIds, false);
+        List<StatsDtoOut> statsDtoOutList = Collections.emptyList();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            statsDtoOutList = response.getBody();
+        }
+
+        Map<String, Long> eventViewsMap = statsDtoOutList.stream()
+                .collect(Collectors.toMap(StatsDtoOut::getUri, StatsDtoOut::getHits));
+
+        List<EventViewsDtoOut> eventViewsList = list.stream()
+                .map(event -> new EventViewsDtoOut(event, eventViewsMap.getOrDefault(event.getId().toString(),
+                        0L)))
+                .collect(Collectors.toList());
+        return eventViewsList;
     }
 }

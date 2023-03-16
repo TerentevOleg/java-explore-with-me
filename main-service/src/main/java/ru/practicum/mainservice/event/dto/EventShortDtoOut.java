@@ -1,29 +1,29 @@
 package ru.practicum.mainservice.event.dto;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 import ru.practicum.mainservice.category.dto.CategoryDtoOut;
 import ru.practicum.mainservice.user.dto.UserShortDtoOut;
 
-@Value
+@Data
 @Builder
 public class EventShortDtoOut {
 
-    Long id;
+    private Long id;
 
-    String title;
+    private String title;
 
-    String annotation;
+    private String annotation;
 
-    CategoryDtoOut category;
+    private CategoryDtoOut category;
 
-    Long confirmedRequests;
+    private Long confirmedRequests;
 
-    String eventDate;
+    private String eventDate;
 
-    UserShortDtoOut initiator;
+    private UserShortDtoOut initiator;
 
-    Boolean paid;
+    private Boolean paid;
 
-    Long views;
+    private Long views;
 }
