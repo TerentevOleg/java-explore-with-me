@@ -98,43 +98,43 @@ public class RequestServiceImpl implements RequestService {
     public RequestPatchDtoOut update(Long userId, Long eventId, RequestPatchDtoIn updateRequest) {
         Event event = findByEventId(eventId);
 
-        if (event.getParticipantLimit() <=
-                requestRepository.countRequestByEventIdAndStatus(eventId, RequestStatus.CONFIRMED)) {
+        Long participantLimit = event.getParticipantLimit();
+        Long confirmedCount = requestRepository.countRequestByEventIdAndStatus(eventId,
+                RequestStatus.CONFIRMED);
+
+        if (participantLimit <= confirmedCount) {
             throw new ContentDetectedException("RequestServiceImpl: event entry limit.");
         }
-
-        List<RequestDtoOut> confirmedRequests = new ArrayList<>();
-        List<RequestDtoOut> rejectedRequests = new ArrayList<>();
 
         List<Long> requestIds = updateRequest.getRequestIds();
-        List<Request> requests =
-                requestRepository.findAllByEventIdAndEventInitiatorIdAndIdIn(eventId, userId, requestIds);
+        List<Request> requests = requestRepository.findAllByEventIdAndEventInitiatorIdAndIdIn(eventId,
+                userId, requestIds);
 
-        if (event.getParticipantLimit() < requests.size()) {
+        if (participantLimit < requests.size() + confirmedCount) {
             throw new ContentDetectedException("RequestServiceImpl: event entry limit.");
         }
 
-        switch (updateRequest.getStatus()) {
-            case "CONFIRMED":
-                for (Request request : requests) {
-                    request.setStatus(RequestStatus.CONFIRMED);
-                    log.debug("RequestServiceImpl: update request with userId= {} and eventId= {}", userId, eventId);
-                    requestRepository.saveAndFlush(request);
-                    confirmedRequests.add(requestMapper.toRequestDtoOut(request));
-                }
-                break;
-            case "REJECTED":
-                for (Request request : requests) {
-                    request.setStatus(RequestStatus.REJECTED);
-                    log.debug("RequestServiceImpl: update request with userId= {} and eventId= {}", userId, eventId);
-                    requestRepository.saveAndFlush(request);
-                    rejectedRequests.add(requestMapper.toRequestDtoOut(request));
-                }
+        List<Request> confirmedRequests = new ArrayList<>();
+        List<Request> rejectedRequests = new ArrayList<>();
+
+        if (updateRequest.getStatus().equals("CONFIRMED")) {
+            confirmedRequests = confirmRequests(requests, participantLimit, confirmedCount);
+        } else if (updateRequest.getStatus().equals("REJECTED")) {
+            rejectedRequests = rejectRequests(requests);
         }
 
+        requestRepository.saveAll(requests);
+
+        List<RequestDtoOut> confirmedRequestDtos = confirmedRequests.stream()
+                .map(requestMapper::toRequestDtoOut)
+                .collect(Collectors.toList());
+        List<RequestDtoOut> rejectedRequestDtos = rejectedRequests.stream()
+                .map(requestMapper::toRequestDtoOut)
+                .collect(Collectors.toList());
+
         return RequestPatchDtoOut.builder()
-                .confirmedRequests(confirmedRequests)
-                .rejectedRequests(rejectedRequests)
+                .confirmedRequests(confirmedRequestDtos)
+                .rejectedRequests(rejectedRequestDtos)
                 .build();
     }
 
@@ -155,5 +155,28 @@ public class RequestServiceImpl implements RequestService {
                 .orElseThrow(() ->
                         new NotFoundException("RequestServiceImpl: event with id=" +
                                 id + " was not found."));
+    }
+
+    private List<Request> confirmRequests(List<Request> requests, Long participantLimit, Long confirmedCount) {
+        List<Request> confirmedRequests = new ArrayList<>();
+        for (Request request : requests) {
+            if (participantLimit > confirmedCount) {
+                request.setStatus(RequestStatus.CONFIRMED);
+                confirmedRequests.add(request);
+                confirmedCount++;
+            } else {
+                request.setStatus(RequestStatus.REJECTED);
+            }
+        }
+        return confirmedRequests;
+    }
+
+    private List<Request> rejectRequests(List<Request> requests) {
+        List<Request> rejectedRequests = new ArrayList<>();
+        for (Request request : requests) {
+            request.setStatus(RequestStatus.REJECTED);
+            rejectedRequests.add(request);
+        }
+        return rejectedRequests;
     }
 }
