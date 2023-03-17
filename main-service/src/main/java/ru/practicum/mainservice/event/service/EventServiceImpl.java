@@ -23,6 +23,7 @@ import ru.practicum.mainservice.location.dto.LocationDtoOut;
 import ru.practicum.mainservice.location.mapper.LocationMapper;
 import ru.practicum.mainservice.location.model.Location;
 import ru.practicum.mainservice.location.repository.LocationRepository;
+import ru.practicum.mainservice.request.dto.RequestConfirmedDtoOut;
 import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
@@ -105,11 +106,13 @@ public class EventServiceImpl implements EventService {
                         0L)))
                 .collect(Collectors.toList());
 
+        Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+
         return eventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
-                    eventShortDtoOut.setConfirmedRequests(requestRepository
-                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
+                            .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
                 })
                 .collect(Collectors.toList());
@@ -136,12 +139,13 @@ public class EventServiceImpl implements EventService {
                 userList, stateList, categoryList, start, end, PageRequest.of(from, size));
 
         List<EventViewsDtoOut> eventViewsList = getEventViewsDtoOuts(start, end, list);
+        Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
 
         return eventViewsList.stream()
                 .map(ev -> {
                     EventDtoOut eventDtoOut = EventMapper.toEventDtoOut(ev.getEvent());
-                    eventDtoOut.setConfirmedRequests(requestRepository
-                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    eventDtoOut.setConfirmedRequests(confirmedRequestsMap
+                            .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventDtoOut;
                 })
                 .collect(Collectors.toList());
@@ -187,11 +191,13 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+
         return sortedEventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
-                    eventShortDtoOut.setConfirmedRequests(requestRepository
-                            .countConfirmedRequestsByEventId(ev.getEvent().getId()));
+                    eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
+                            .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
                 })
                 .collect(Collectors.toList());
@@ -367,5 +373,14 @@ public class EventServiceImpl implements EventService {
                         0L)))
                 .collect(Collectors.toList());
         return eventViewsList;
+    }
+
+    private Map<Long, Long> countEventConfirmedRequest(List<Event> list) {
+        Map<Long, Long> confirmedRequestsMap = requestRepository.countConfirmedRequestsByEventIds(list.stream()
+                        .map(Event::getId)
+                        .collect(Collectors.toList()))
+                .stream()
+                .collect(Collectors.toMap(RequestConfirmedDtoOut::getEventId, RequestConfirmedDtoOut::getCount));
+        return confirmedRequestsMap;
     }
 }

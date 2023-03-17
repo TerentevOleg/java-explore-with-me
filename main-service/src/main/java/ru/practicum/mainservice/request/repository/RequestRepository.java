@@ -3,6 +3,7 @@ package ru.practicum.mainservice.request.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import ru.practicum.mainservice.request.dto.RequestConfirmedDtoOut;
 import ru.practicum.mainservice.request.model.Request;
 import ru.practicum.mainservice.request.model.RequestStatus;
 
@@ -22,8 +23,10 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 
     Long countRequestByEventIdAndStatus(Long eventId, RequestStatus status);
 
-    @Query("SELECT COUNT(r) " +
+    @Query("SELECT new ru.practicum.mainservice.request.dto.RequestConfirmedDtoOut(r.event.id, COUNT(r.id)) " +
            "FROM Request r " +
-           "WHERE r.event.id = :eventId AND r.status = 'CONFIRMED'")
-    Long countConfirmedRequestsByEventId(@Param("eventId") Long eventId);
+           "WHERE r.event.id IN :eventIds " +
+           "AND r.status = 'CONFIRMED' " +
+           "GROUP BY r.event.id")
+    List<RequestConfirmedDtoOut> countConfirmedRequestsByEventIds(@Param("eventIds") List<Long> eventIds);
 }
