@@ -18,7 +18,7 @@
               "});",
               "pm.test(\"Пользователь должен содержать поля: id, email, name.\", function () {",
               "    const jsonData = pm.response.json();",
-              "    pm.expect(jsonData.id, '\"id\" field').to.eql(61);",
+              "    pm.expect(jsonData.id, '\"id\" field').to.eql(63);",
               "    pm.expect(jsonData.email, '\"email\" field').to.eql('user@test.com');",
               "    pm.expect(jsonData.name, '\"name\" field').to.eql('userName');",
               "});"
@@ -71,7 +71,7 @@
               "});\r",
               "pm.test(\"Категория должна содержать поля: id, name.\", function () {\r",
               "    const jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData.id, '\"id\" field').to.eql(53);\r",
+              "    pm.expect(jsonData.id, '\"id\" field').to.eql(55);\r",
               "    pm.expect(jsonData.name, '\"name\" field').to.eql('Tayler');\r",
               "});"
             ],
@@ -117,7 +117,7 @@
               "});\r",
               "pm.test(\"Событие должно содержать поля: id, annotation, description, state.\", function () {\r",
               "    var jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData.id, '\"id\" field').to.eql(35);\r",
+              "    pm.expect(jsonData.id, '\"id\" field').to.eql(38);\r",
               "    pm.expect(jsonData.annotation, '\"annotation\" field').to.eql('Dog Tayler');\r",
               "    pm.expect(jsonData.description, '\"description\" field').to.eql('just a dog');\r",
               "    pm.expect(jsonData.state, '\"state\" field').to.eql('PENDING');\r",
@@ -213,11 +213,11 @@
           "variable": [
             {
               "key": "userId",
-              "value": "61"
+              "value": "63"
             },
             {
               "key": "eventId",
-              "value": "35"
+              "value": "38"
             }
           ]
         }
@@ -237,7 +237,7 @@
               "});\r",
               "pm.test(\"Событие должно содержать поля: id, annotation, description, state.\", function () {\r",
               "    var jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData.id, '\"id\" field').to.eql(35);\r",
+              "    pm.expect(jsonData.id, '\"id\" field').to.eql(38);\r",
               "    pm.expect(jsonData.annotation, '\"annotation\" field').to.eql('Dog Tayler');\r",
               "    pm.expect(jsonData.description, '\"description\" field').to.eql('just a dog');\r",
               "    pm.expect(jsonData.state, '\"state\" field').to.eql('PUBLISHED');\r",
@@ -272,7 +272,7 @@
           "variable": [
             {
               "key": "eventId",
-              "value": "35"
+              "value": "38"
             }
           ]
         }
@@ -292,7 +292,7 @@
               "});",
               "pm.test(\"Пользователь должен содержать поля: id, email, name.\", function () {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.id, '\"id\" field').to.eql(62);",
+              "    pm.expect(jsonData.id, '\"id\" field').to.eql(64);",
               "    pm.expect(jsonData.email, '\"email\" field').to.eql('user2@test.com');",
               "    pm.expect(jsonData.name, '\"name\" field').to.eql('userName2');",
               "});"
@@ -383,11 +383,11 @@
           "variable": [
             {
               "key": "userId",
-              "value": "61"
+              "value": "63"
             },
             {
               "key": "eventId",
-              "value": "35"
+              "value": "38"
             }
           ]
         }
@@ -445,11 +445,11 @@
           "variable": [
             {
               "key": "userId",
-              "value": "62"
+              "value": "64"
             },
             {
               "key": "eventId",
-              "value": "35"
+              "value": "38"
             }
           ]
         }
@@ -665,7 +665,7 @@
           "variable": [
             {
               "key": "userId",
-              "value": "61"
+              "value": "63"
             },
             {
               "key": "commentId",
@@ -720,7 +720,7 @@
           "variable": [
             {
               "key": "id",
-              "value": "35"
+              "value": "38"
             }
           ]
         }
@@ -759,7 +759,7 @@
           "variable": [
             {
               "key": "userId",
-              "value": "61"
+              "value": "63"
             },
             {
               "key": "commentId",
@@ -802,7 +802,7 @@
           "variable": [
             {
               "key": "userId",
-              "value": "61"
+              "value": "63"
             },
             {
               "key": "commentId",
@@ -854,7 +854,7 @@
           "variable": [
             {
               "key": "userId",
-              "value": "62"
+              "value": "64"
             },
             {
               "key": "commentId",
