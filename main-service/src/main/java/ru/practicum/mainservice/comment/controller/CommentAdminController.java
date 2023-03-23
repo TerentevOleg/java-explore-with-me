@@ -17,13 +17,13 @@ public class CommentAdminController {
     private final CommentService commentService;
 
     @GetMapping("/comments")
-    public ResponseEntity<List<CommentDtoOut>> getByAdmin(@RequestParam(required = false) String text,
-                                                          @RequestParam (name = "from", defaultValue = "0")
-                                                          Integer from,
-                                                          @RequestParam (name = "size", defaultValue = "10")
-                                                          Integer size,
-                                                          @RequestParam (required = false) String rangeStart,
-                                                          @RequestParam (required = false) String rangeEnd) {
+    public ResponseEntity<List<CommentDtoOut>> getByAdmin(
+                                                    @RequestParam(required = false) String text,
+                                                    @RequestParam(required = false, defaultValue = "0") Integer from,
+                                                    @RequestParam(required = false, defaultValue = "10") Integer size,
+                                                    @RequestParam(required = false) String rangeStart,
+                                                    @RequestParam(required = false) String rangeEnd
+    ) {
         return ResponseEntity.ok(commentService.getByAdmin(text, from, size, rangeStart, rangeEnd));
     }
 

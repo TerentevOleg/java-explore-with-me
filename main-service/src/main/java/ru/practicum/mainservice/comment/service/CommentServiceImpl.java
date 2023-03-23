@@ -17,6 +17,9 @@ import ru.practicum.mainservice.event.model.State;
 import ru.practicum.mainservice.event.repository.EventRepository;
 import ru.practicum.mainservice.exception.ContentDetectedException;
 import ru.practicum.mainservice.exception.NotFoundException;
+import ru.practicum.mainservice.request.model.Request;
+import ru.practicum.mainservice.request.model.RequestStatus;
+import ru.practicum.mainservice.request.repository.RequestRepository;
 import ru.practicum.mainservice.user.model.User;
 import ru.practicum.mainservice.user.repository.UserRepository;
 
@@ -37,6 +40,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final CommentMapper commentMapper;
+    private final RequestRepository requestRepository;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
@@ -50,6 +54,16 @@ public class CommentServiceImpl implements CommentService {
         if (!event.getState().equals(State.PUBLISHED)) {
             throw new ContentDetectedException("CommentServiceImpl: comments can only be left for published events.");
         }
+
+        List<Request> requests = requestRepository.findByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+        boolean userHasConfirmedRequest = requests.stream()
+                .anyMatch(request -> request.getRequester().getId().equals(userId));
+        if (!userHasConfirmedRequest) {
+            throw new ContentDetectedException("CommentServiceImpl: user with id=" + userId +
+                    " cannot leave a comment for event with id=" + eventId +
+                    " because they did not attend the event.");
+        }
+
         Comment comment = commentMapper.toComment(commentDtoOut);
         comment.setEvent(event);
         comment.setAuthor(user);
@@ -87,12 +101,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentDtoOut> getByAdmin(String text, Integer from, Integer size, String rangeStart, String rangeEnd) {
-        LocalDateTime start;
-        LocalDateTime end;
-        if (Objects.isNull(rangeStart) && Objects.isNull(rangeEnd)) {
-            start = LocalDateTime.now().withNano(0).minusDays(1L);
-            end = LocalDateTime.now().withNano(0).plusMinutes(1L);
-        } else {
+        LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1L);
+        LocalDateTime end = LocalDateTime.now().withNano(0).plusMinutes(1L);
+        if (rangeStart != null && rangeEnd != null) {
             start = LocalDateTime.parse(rangeStart, formatter);
             end = LocalDateTime.parse(rangeEnd, formatter);
         }
@@ -109,7 +120,9 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getComment(commentId);
         if (approved) {
             comment.setState(CommentStatus.PUBLISHED);
-        } else comment.setState(CommentStatus.CANCELED);
+        } else {
+            comment.setState(CommentStatus.CANCELED);
+        }
         commentRepository.save(comment);
         return commentMapper.toCommentDto(comment);
     }

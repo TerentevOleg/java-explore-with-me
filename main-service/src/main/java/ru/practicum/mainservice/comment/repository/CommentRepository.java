@@ -20,4 +20,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findAllByTextContainingAndCreatedBetween(String text, LocalDateTime start,
                                                            LocalDateTime end, Pageable pageable);
+
+    List<Comment> findCommentsByEventIdIn(List<Long> eventIds);
 }

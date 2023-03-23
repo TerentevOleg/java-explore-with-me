@@ -113,11 +113,13 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return eventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
-                    eventShortDtoOut.setComments(getCommentDtoOutList(ev.getEvent()));
+                    eventShortDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(),
+                            Collections.emptyList()));
                     eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
@@ -147,11 +149,12 @@ public class EventServiceImpl implements EventService {
 
         List<EventViewsDtoOut> eventViewsList = getEventViewsDtoOuts(start, end, list);
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return eventViewsList.stream()
                 .map(ev -> {
                     EventDtoOut eventDtoOut = EventMapper.toEventDtoOut(ev.getEvent());
-                    eventDtoOut.setComments(getCommentDtoOutList(ev.getEvent()));
+                    eventDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(), Collections.emptyList()));
                     eventDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventDtoOut;
@@ -200,11 +203,13 @@ public class EventServiceImpl implements EventService {
         }
 
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return sortedEventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
-                    eventShortDtoOut.setComments(getCommentDtoOutList(ev.getEvent()));
+                    eventShortDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(),
+                            Collections.emptyList()));
                     eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
@@ -393,10 +398,11 @@ public class EventServiceImpl implements EventService {
         return confirmedRequestsMap;
     }
 
-    private List<CommentDtoOut> getCommentDtoOutList(Event event) {
-        List<Comment> comments = commentRepository.findCommentsByEventId(event.getId());
+    private Map<Long, List<CommentDtoOut>> getCommentDtoOutMap(List<Event> events) {
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        List<Comment> comments = commentRepository.findCommentsByEventIdIn(eventIds);
         return comments.stream()
-                .map(commentMapper::toCommentDto)
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(comment -> comment.getEvent().getId(),
+                        Collectors.mapping(commentMapper::toCommentDto, Collectors.toList())));
     }
 }

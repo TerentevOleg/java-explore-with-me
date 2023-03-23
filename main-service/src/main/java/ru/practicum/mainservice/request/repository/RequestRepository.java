@@ -29,4 +29,6 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
            "AND r.status = 'CONFIRMED' " +
            "GROUP BY r.event.id")
     List<RequestConfirmedDtoOut> countConfirmedRequestsByEventIds(@Param("eventIds") List<Long> eventIds);
+
+    List<Request> findByEventIdAndStatus(Long eventId, RequestStatus confirmed);
 }
