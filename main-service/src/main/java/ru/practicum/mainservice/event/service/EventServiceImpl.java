@@ -11,6 +11,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.mainservice.category.model.Category;
 import ru.practicum.mainservice.category.repository.CategoryRepository;
+import ru.practicum.mainservice.comment.dto.CommentDtoOut;
+import ru.practicum.mainservice.comment.mapper.CommentMapper;
+import ru.practicum.mainservice.comment.model.Comment;
+import ru.practicum.mainservice.comment.repository.CommentRepository;
 import ru.practicum.mainservice.event.dto.*;
 import ru.practicum.mainservice.event.mapper.EventMapper;
 import ru.practicum.mainservice.event.model.Event;
@@ -49,6 +53,8 @@ public class EventServiceImpl implements EventService {
     private final StatsClient statsClient;
     private final LocationMapper locationMapper;
     private final RequestRepository requestRepository;
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -107,10 +113,13 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return eventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
+                    eventShortDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(),
+                            Collections.emptyList()));
                     eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
@@ -140,10 +149,12 @@ public class EventServiceImpl implements EventService {
 
         List<EventViewsDtoOut> eventViewsList = getEventViewsDtoOuts(start, end, list);
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return eventViewsList.stream()
                 .map(ev -> {
                     EventDtoOut eventDtoOut = EventMapper.toEventDtoOut(ev.getEvent());
+                    eventDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(), Collections.emptyList()));
                     eventDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventDtoOut;
@@ -192,10 +203,13 @@ public class EventServiceImpl implements EventService {
         }
 
         Map<Long, Long> confirmedRequestsMap = countEventConfirmedRequest(list);
+        Map<Long, List<CommentDtoOut>> commentsMap = getCommentDtoOutMap(list);
 
         return sortedEventViewsList.stream()
                 .map(ev -> {
                     EventShortDtoOut eventShortDtoOut = EventMapper.toEventShortDto(ev.getEvent());
+                    eventShortDtoOut.setComments(commentsMap.getOrDefault(ev.getEvent().getId(),
+                            Collections.emptyList()));
                     eventShortDtoOut.setConfirmedRequests(confirmedRequestsMap
                             .getOrDefault(ev.getEvent().getId(), 0L));
                     return eventShortDtoOut;
@@ -382,5 +396,13 @@ public class EventServiceImpl implements EventService {
                 .stream()
                 .collect(Collectors.toMap(RequestConfirmedDtoOut::getEventId, RequestConfirmedDtoOut::getCount));
         return confirmedRequestsMap;
+    }
+
+    private Map<Long, List<CommentDtoOut>> getCommentDtoOutMap(List<Event> events) {
+        List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
+        List<Comment> comments = commentRepository.findCommentsByEventIdIn(eventIds);
+        return comments.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getEvent().getId(),
+                        Collectors.mapping(commentMapper::toCommentDto, Collectors.toList())));
     }
 }
