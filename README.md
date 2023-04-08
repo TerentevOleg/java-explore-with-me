@@ -32,3 +32,9 @@ The module runs on port 9090.
 ![Postman](https://img.shields.io/badge/postman-%23FF6C37.svg?style=for-the-badge&logo=postman&logoColor=white)
 
 ### Quick start
+
+---
+### Swagger specification
+
+---
+### Data storage
