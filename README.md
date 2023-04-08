@@ -1,20 +1,25 @@
 # Explore with me
 
 ### Functional
-There are 2 microservices made as modules in project:
+The project consists of two microservices, namely:
 
-Ewm-service - contains everything necessary for operation:
-- Viewing events without authorization;
-- Ability to create and manage categories;
-- Events and working with them - creating, moderation;
-- User requests to participate in an event - request, confirmation, rejection.
-- Creating and managing compilations.
-- Adding and deleting likes of events, forming ratings. 
-- Runs on port 8080.
+1. Main-service - This module provides all the essential features such as:
 
-Stats-server - stores the number of views and allows to make various selections for analyzing the application usage.
-- Separate service for collecting statistics.
-- Runs on port 9090.
+- Viewing events without requiring authorization
+- Creating and managing categories
+- Creating and moderating events
+- Handling user requests for event participation, including confirmation and rejection
+- Creating and managing compilations
+- Adding and deleting likes of events and generating ratings
+
+The module runs on port 8080.
+
+2. Stats-server - This module is dedicated to collecting statistics and offers the following functionalities:
+
+- Storing the number of views
+- Providing various options for analyzing the application usage
+
+The module runs on port 9090.
 
 ---
 ### Stack
@@ -25,3 +30,5 @@ Stats-server - stores the number of views and allows to make various selections 
 ![JUnit](https://img.shields.io/badge/junit-%25E67127.svg?style=for-the-badge&logo=junit5&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Postman](https://img.shields.io/badge/postman-%23FF6C37.svg?style=for-the-badge&logo=postman&logoColor=white)
+
+### Quick start
