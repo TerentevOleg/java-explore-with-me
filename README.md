@@ -47,3 +47,5 @@ Stats-service
 
 ---
 ### Data storage
+
+![ER-диаграмма](main-service/src/main/resources/SchemaDb.png)
