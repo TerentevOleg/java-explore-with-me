@@ -32,9 +32,18 @@ The module runs on port 9090.
 ![Postman](https://img.shields.io/badge/postman-%23FF6C37.svg?style=for-the-badge&logo=postman&logoColor=white)
 
 ### Quick start
+`mvn package`  
+`docker-compose up`
 
 ---
 ### Swagger specification
+<a href="https://petstore.swagger.io/?url=https://raw.githubusercontent.com/yandex-praktikum/java-explore-with-me/main/ewm-main-service-spec.json">
+Main-service
+</a>
+<br>
+<a href="https://petstore.swagger.io/?url=https://raw.githubusercontent.com/yandex-praktikum/java-explore-with-me/main/ewm-stats-service-spec.json">
+Stats-service
+</a>
 
 ---
 ### Data storage
